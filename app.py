@@ -46,7 +46,22 @@ location_coords = {
 }
 lat, lng = location_coords[location]
 
-st.sidebar.subheader("Weather Conditions")
+st.sidebar.subheader("Live UAE Weather")
+if st.sidebar.button("Fetch Live Abu Dhabi Weather"):
+    try:
+        url = "https://api.open-meteo.com/v1/forecast?latitude=24.4539&longitude=54.3773&current=temperature_2m,wind_speed_10m,visibility,relative_humidity_2m,surface_pressure&wind_speed_unit=mph&temperature_unit=fahrenheit"
+        response = requests.get(url)
+        data = response.json()
+        current = data['current']
+        st.session_state['visibility'] = min(current.get('visibility', 5000) / 1609, 10.0)
+        st.session_state['wind_speed'] = float(current.get('wind_speed_10m', 10))
+        st.session_state['temperature'] = float(current.get('temperature_2m', 95))
+        st.session_state['humidity'] = float(current.get('relative_humidity_2m', 20))
+        st.session_state['pressure'] = float(current.get('surface_pressure', 29.92)) * 0.02953
+        st.sidebar.success("Live weather loaded!")
+    except:
+        st.sidebar.error("Could not fetch weather data")
+st.sidebar.divider()
 visibility = st.sidebar.slider("Visibility (miles)", 0.1, 10.0, 5.0, 0.1)
 wind_speed = st.sidebar.slider("Wind Speed (mph)", 0.0, 60.0, 10.0, 0.5)
 temperature = st.sidebar.slider("Temperature (°F)", 60.0, 120.0, 95.0, 1.0)
@@ -246,6 +261,16 @@ fig5 = px.scatter_mapbox(
 fig5.update_layout(margin=dict(t=0,b=0))
 st.plotly_chart(fig5, use_container_width=True)
 
+st.divider()
+st.subheader("🗺️ UAE Highway Risk Heatmap")
+try:
+    with open(r'C:\Users\tapas\Desktop\cps_traffic_project\outputs\uae_highway_map.html', 'r') as f:
+        map_html = f.read()
+    import streamlit.components.v1 as components
+    components.html(map_html, height=450)
+except:
+    st.info("Run the notebook cell to generate the heatmap first")
+    
 st.divider()
 st.subheader("📊 Batch Simulation — Population Level Impact")
 
